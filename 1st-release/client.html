@@ -31,42 +31,70 @@
         //FUNÇÃO PARA CRIAR E GERNECIAR O ESTADO DO JOGO
         function createGame(){
             const state = {
-                players: {
-                    'player1': {x: 1, y: 1},
-                    'player2': {x: 9, y: 9}
-                },
-                fruits:{
-                    'fruit1': {x: 3, y: 1}
+                players: {},
+                fruits:{}
+            }
+
+            function addPlayer(command){
+                const playerId = command.playerId
+                const playerX = command.playerX
+                const playerY = command.playerY
+
+                state.players[playerId] = {
+                    x:playerX,
+                    y:playerY
+                }
+            }
+            function removePlayer(command){
+                const playerId = command.playerId
+
+                delete state.players[playerId]
+            }
+
+            function addFruit(command){
+                const fruitId = command.fruitId
+                const fruitX= command.fruitX
+                const fruitY= command.fruitY
+
+                state.fruits[fruitId]= {
+                    x:fruitX,
+                    y:fruitY
                 }
             }
 
+            function removeFruit(command){
+                const fruitId = command.fruitId
+
+                delete state.fruits[fruitId]
+            }
+
             function movePlayer(command){
-                console.log(`game.movePayer() -> Moving ${command.playerId} whith ${command.keyPressed}`)
+                //console.log(`game.movePayer() -> Moving ${command.playerId} whith ${command.keyPressed}`)
 
                 const aceptedMoves= {
                     ArrowUp(player){
-                        console.log(`game.movePayer().ArrowUp -> Moving player up`)
+                        //console.log(`game.movePayer().ArrowUp -> Moving player up`)
                         if(player.y -1 >=0){
                             player.y = player.y-1
                             return
                         }
                     },
                     ArrowDown(player){
-                        console.log(`game.movePayer().ArrowUp -> Moving player down`)
+                        //console.log(`game.movePayer().ArrowUp -> Moving player down`)
                         if(player.y +1 <screen.height){
                             player.y = player.y+1
                             return
                         }
                     },
                     ArrowLeft(player){
-                        console.log(`game.movePayer().ArrowUp -> Moving player left`)
+                        //console.log(`game.movePayer().ArrowUp -> Moving player left`)
                         if(player.x -1 >=0){
                             player.x = player.x-1
                             return
                         }
                     },
                     ArrowRight(player){
-                        console.log(`game.movePayer().ArrowUp -> Moving player right`)
+                        //console.log(`game.movePayer().ArrowUp -> Moving player right`)
                         if(player.x +1 < screen.width){
                             player.x = player.x+1
                             return
@@ -75,18 +103,37 @@
                 }
 
                 const keyPressed = command.keyPressed
+                const playerId = command.playerId
                 const player = state.players[command.playerId]
                 const moveFunction = aceptedMoves[keyPressed]
 
-                if(moveFunction){
-                    moveFunction(player)
+                if(player && moveFunction){ 
+                    moveFunction(player) 
+                    checkForFruitCollision(playerId)
                 }
-                return //TEMP
-                
-                
 
             }
+
+            function checkForFruitCollision(playerId){
+                        const player = state.players[playerId]
+
+                        for(const fruitId in state.fruits){
+                            const fruit = state.fruits[fruitId]
+                            console.log(`cheking ${playerId} and ${fruitId}`)
+
+                            if(player.x === fruit.x && player.y===fruit.y){
+                                console.log(`colision between ${playerId} and ${fruitId}`)
+
+                                removeFruit({fruitId:fruitId})
+                            }
+                        }     
+            }
+
             return {
+                addPlayer,
+                removePlayer,
+                addFruit,
+                removeFruit,
                 movePlayer,
                 state
             }
@@ -95,6 +142,10 @@
         const game = createGame()
         const keyboardListener = createKeyboardLiestener()
         keyboardListener.subscribe(game.movePlayer)
+
+        game.addPlayer({playerId: 'player1',playerX:0,playerY:0})
+        game.addFruit({fruitId:'fruit1',fruitX:3,fruitY:3})
+
         //EVENTO DE INPUTS DO TECLADO
         function createKeyboardLiestener(){
             const state = {
@@ -106,7 +157,7 @@
             }
 
             function notifyAll(command){
-                console.log(`keyboardListener -> Notifying ${state.observers.length} observers`)
+                //console.log(`keyboardListener -> Notifying ${state.observers.length} observers`)
 
                 for(const observerFuction of state.observers){
                     observerFuction(command)
